@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Manager</title>
+    
+    <!--Bootstrap & MDI for the LOOKS-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link href="css/materialdesignicons.css" media="all" rel="stylesheet" type="text/css" />
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <!--Special styles-->
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+
+    <!--Vue.js Development version-->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue-resource/0.1.13/vue-resource.min.js"></script>
+</head>
+
+<body>
+    <div id="app" class="container">
+        <div class="row title">
+            <div class="col-12">
+                <p class="h3">Pixel Manager</p>
+            </div>
+        </div>
+        <div class="row main">
+            <div class="col-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Image Editor</h5>
+        
+                        <matrix editable v-model="image"></matrix>
+                        <div class="btn-group">
+                            <button class="btn btn-primary" :disabled="!parseInt(this.image.join(''), 2) > 0" @click="addImage">Save</button>
+                            <button class="btn btn-danger" @click="clearImage">Clear</button>
+                            <button class="btn btn-danger" :disabled="imageIndex === null" @click="deleteImage">Delete</button>
+                        </div>
+
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-warning dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Send to Pixel
+                            </button>
+                            <div class="dropdown-menu">
+                                <template v-if="pixels.length > 0">
+                                    <a v-for="pixel in pixels" class="dropdown-item" href="#" @click="sendImage(pixel)">{{pixel.name}}</a>
+                                    <div class="dropdown-divider"></div>
+                                </template>
+                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#addPixelModal">Edit pixel list...</a>
+                            </div>
+                        </div>
+
+                        <label><input type="checkbox" v-model="instantUpdate"> Instant Update</label>
+
+                        <input type="text" class="form-control" placeholder="Message" v-model="message" @keyup.enter="sendMessage">                    </div>
+                </div>
+            </div>
+            <div class="cards col-8">
+                <h3 class="cards-head">Saved Images<button class="btn btn-primary btn-sm float-right" data-toggle="modal" data-target="#importExportModal">Import/Export</button></h3>
+
+                <matrix cclass="sml" v-for="i, index in images" :selected="image === i" :value="i" @click.native="getImage(index)"></matrix>
+                <div v-if="images.length === 0" class="alert alert-info" role="alert">
+                    You haven't saved any of your creations yet. Click the save button to save an image, then click the image to recall and edit it.
+                </div>
+            </div>
+
+            <!-- Pixels Modal -->
+            <div class="modal fade" id="addPixelModal" tabindex="-1" role="dialog" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                        <h5 class="modal-title">Pixels</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        </div>
+                        <div class="modal-body">
+                            <ul class="list-group">
+                                <!--Pixel List-->
+                                <li class="list-group-item"
+                                    v-for="pixel in pixels">
+                                    <span>{{pixel.ip}} - {{pixel.name}}</span>
+                                    <!--Delete Button-->
+                                    <button type="button"
+                                            class="btn btn-danger btn-sm side-btn"
+                                            @click="deletePixel(pixel)"><i class="mdi mdi-close"></i></button>
+                            </li>
+        
+                            <li class="list-group-item">
+                                <input class="form-control" v-model="newPixel.ip">
+                                <input class="form-control name-input" v-model="newPixel.name">
+                                <button class="btn btn-success" @click="createPixel" >Add</button>
+                            </li>
+                            </ul>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- Import / Export Modal -->
+            <div class="modal fade" id="importExportModal" tabindex="-1" role="dialog" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                        <h5 class="modal-title">Import / Export</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        </div>
+                        <div class="modal-body">
+                            <span>Copy this to export your creations:</span>
+                            <textarea class="form-control" cols="30" rows="5" resize="false" :value="stringImages"></textarea>
+                            <br>
+                            <span>Paste here to Import your backups:</span>
+                            <textarea class="form-control" cols="30" rows="5" resize="false" v-model="importData"></textarea>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-success" type="button" @click="importImages()">Import</button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <script type="text/x-template" id="matrix-template">
+        <div class="canvas card" :class="cclass + (selected ? ' selected': '')">
+            <div v-for="pixel, index in value"
+                v-bind:class="[pixel === 1 ? 'active' : '']"
+                @click="flipPixel(pixel, index)"
+                class="pixel"></div>
+        </div>
+    </script>
+    
+    <script>
+        Vue.component('matrix', {
+            template: '#matrix-template',
+            props: ['editable', 'value', 'cclass', 'selected'],
+            methods: {
+                flipPixel: function (pixel, index) {
+                    if (this.editable !== undefined) {
+                        Vue.set(this.value, index, (pixel === 1) ? 0 : 1)
+                        this.$emit('input', this.value)
+                    }
+                }
+            }
+        })
+
+        var app = new Vue({
+            el: '#app',
+            data: {
+                image: [],
+                images: [],
+                pixels: [],
+                newPixel: {"ip":"192.168.1.0", "name": "Name"},
+                instantUpdate: false,
+                lastPixel: null,
+                imageIndex: null,
+                hex: "0000000000000000",
+                importData: "",
+                message: ""
+            },
+            methods:{
+                clearImage: function () {
+                    this.imageIndex = null
+                    this.image = new Array(64).fill(0)
+                },
+                addImage: function () {
+                    if(parseInt(this.image.join(''), 2) > 0) {
+                        this.images.push(this.image.slice())
+                    }
+                },
+                deleteImage: function() {
+                    if(this.imageIndex !== null) {
+                        this.images.splice(this.imageIndex, 1)
+                        this.clearImage()
+                    }
+                },
+                getImage: function (index) {
+                    this.imageIndex = index
+                    this.image = this.images[index]
+                },
+                sendImage: function (pixel) {
+                    this.lastPixel = pixel
+                    url = 'http://' + pixel.ip + '/?data=' + this.hex
+                    console.log("REQUEST: " + url)
+                   
+                    this.$http.get(url).then(response => {
+                        console.log("SUCCESS", response)
+                    }, response => {
+                        console.log("ERROR", response)
+                    })
+                },
+                sendMessage: function () {
+                    url = 'http://' + this.lastPixel.ip + '/?message=' + this.message
+                    console.log("REQUEST: " + url)
+                   
+                    this.$http.get(url).then(response => {
+                        console.log("SUCCESS", response)
+                    }, response => {
+                        console.log("ERROR", response)
+                    })
+                },
+                deletePixel: function (pixel) {
+                    this.pixels.splice(this.pixels.indexOf(pixel), 1)
+                },
+                createPixel: function () {
+                    this.pixels.push(this.newPixel)
+                    this.newPixel = {"ip":"192.168.1.0", "name": "Name"}
+                },
+                importImages: function () {
+                    var importData = JSON.parse(this.importData).map(function (image) {
+                        return hextoBytes(image)
+                    })
+                    console.log(importData)
+                    this.images = this.images.concat(importData)
+                    this.importData = ""
+                }
+            },
+            computed: {
+                stringImages: function () {
+                    var imagesHex = this.images.map(function (image) {
+                        return bytesToHex(image)
+                    })
+
+                    return JSON.stringify(imagesHex)
+                }
+            },
+            watch: {
+              image: function (){
+                this.hex = bytesToHex(this.image)
+                if(this.instantUpdate && this.lastPixel !== null) {
+                    this.sendImage(this.lastPixel)
+                }
+              },
+              images: {
+                  handler: function () {
+                      localStorage.setItem('PixelImageStorage', JSON.stringify(this.images))
+                  },
+                  deep: true
+              },
+              pixels: {
+                  handler: function () {
+                      localStorage.setItem('PixelStorage', JSON.stringify(this.pixels))
+                  },
+                  deep: true
+              }
+            },
+            created: function(){
+                this.image = new Array(64).fill(0)
+                var localImages = JSON.parse(localStorage.getItem('PixelImageStorage'))  
+                this.images = localImages !== null ? localImages : []
+                
+                var localPixels = JSON.parse(localStorage.getItem('PixelStorage'))  
+                this.pixels = localPixels !== null ? localPixels : [] 
+
+                if(this.pixels.length > 0) {
+                    this.lastPixel = this.pixels[0]
+                }
+            }
+        })
+
+        function bytesToHex(bytes) {
+            bytes = bytes.join('').match(/.{1,8}/g)
+            var hex = ""
+            for (byte in bytes) {
+                hex += ("00" + parseInt(bytes[byte], 2).toString(16)).slice(-2)
+            }
+
+            return hex
+        }
+
+        function hextoBytes(hex) {
+            var hexBytes = hex.match(/.{1,2}/g)
+            var bytes = []
+            for(byte in hexBytes) {
+                var byteRow = ("00000000" + parseInt(hexBytes[byte], 16).toString(2)).slice(-8).split('')
+                
+                byteRow = byteRow.map(function (bit) {
+                    return parseInt(bit)
+                })
+
+                bytes = bytes.concat(byteRow)
+            }
+
+            return bytes
+        }
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+.title{
+    margin-top: 20px;
+}
+.canvas{
+    width:  200px;
+    height: 200px;
+    padding: 5px;
+    display: block;
+}
+.selected{
+    border: 1px solid red;
+}
+.sml{
+    width: 100px;
+    height: 100px;
+}
+
+.main {
+    margin-top: 20px;
+}
+.cards-head{
+    height: 50px;
+}
+.cards .card{
+    margin-right: 10px;
+    display: inline-block;
+}
+.pixel{
+    width: 12%;
+    height: 12%;
+    margin-right: .5%;
+    margin-bottom: .5%;
+    background: #eee;
+    border-radius: 50%;
+    float: left;
+}
+.active{
+    background: red;
+}
+.btn {
+    margin-top: 10px;
+}
+.side-btn {
+    float: right;
+    margin-left: 5px;
+    margin-top: 0px; 
+}
+.list-group-item span{
+    line-height: 2;
+}
+.name-input{
+    margin-top: 10px;
+}
