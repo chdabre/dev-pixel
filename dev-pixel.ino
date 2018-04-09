@@ -115,7 +115,8 @@ void handleRequest() {
     } else {
       msgRepeat = false;
     }
-    
+
+    displayMode = 3;
     message = server.arg("message");
     msgPos = 0;
 
@@ -266,5 +267,3 @@ void loop() {
   }
 
 }
-
-
