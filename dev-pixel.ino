@@ -47,6 +47,7 @@ String lastImage = "0000000000000000"; // the previously displayed image as hex 
 void drawImage(String hex) {
   Serial.println("DRAW IMAGE: " + hex);
 
+  lastImage = hex;
   if (hex.length() == 16) {
     for (int i = 0; i < 8; i++) {
       String nextChunk = hex.substring(0, 2); // Get two characters from the string (1 byte)
@@ -64,8 +65,6 @@ void drawImage(String hex) {
   }
 
   matrix.write(); // Write the framebuffer to the screen
-
-  lastImage = hex;
 }
 
 // Handles incoming HTTP Requests
@@ -212,10 +211,11 @@ void loop() {
   
   if (displayMode == 0 || displayMode == 3) { // Message Display
     if (millis() % msgSpeed == 0) {
-      if (msgPos > width * message.length() + matrix.width() - 1 - spacer) { // Message has made 1 pass across the display
+      if (msgPos >= width * message.length() + matrix.width() - 1 - spacer) { // Message has made 1 pass across the display
         if (!msgRepeat) {
           drawImage(lastImage);
           displayMode = 1; // Static Image mode
+          return;
         }
 
         msgPos = 0;
