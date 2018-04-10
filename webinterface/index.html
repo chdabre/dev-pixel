@@ -27,7 +27,8 @@
                 <p class="h3">Pixel Manager</p>
             </div>
         </div>
-        
+
+        <!-- MAIN DIV -->
         <div class="row main">
             <div class="col-3">
                 <div class="card">
@@ -35,13 +36,13 @@
                         <h5 class="card-title">Image Editor</h5>
         
                         <matrix editable v-model="image"></matrix>
-                        <div class="btn-group">
+                        <div class="btn-group mt-2">
                             <button class="btn btn-primary" :disabled="!parseInt(this.image.join(''), 2) > 0" @click="addImage">Save</button>
                             <button class="btn btn-danger" @click="clearImage">Clear</button>
                             <button class="btn btn-danger" :disabled="imageIndex === null" @click="deleteImage">Delete</button>
                         </div>
 
-                        <div class="btn-group">
+                        <div class="btn-group mt-2">
                             <button type="button" class="btn btn-warning dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 Send to Pixel
                             </button>
@@ -62,12 +63,51 @@
                     </div>
                 </div>
             </div>
-            <div class="cards col-8">
+            <div class="cards col-9">
                 <h3 class="cards-head">Saved Images<button class="btn btn-primary btn-sm float-right" data-toggle="modal" data-target="#importExportModal">Import/Export</button></h3>
 
                 <matrix cclass="sml" v-for="i, index in images" :selected="image === i" :value="i" @click.native="getImage(index)"></matrix>
                 <div v-if="images.length === 0" class="alert alert-info" role="alert">
                     You haven't saved any of your creations yet. Click the save button to save an image, then click the image to recall and edit it.
+                </div>
+            </div>
+        </div>
+
+        <!-- TIMELINE -->
+        <div class="row timeline">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Timeline
+                            <div class="dropdown d-inline-block">
+                                <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" data-toggle="dropdown">
+                                    {{ timeline.name }}
+                                </button>
+                                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                    <a v-for="timeline in timelines" @click="getTimeLine(timeline)" class="dropdown-item" href="#">{{ timeline.name }}</a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item" data-toggle="modal" data-target="#newTimelineModal" href="#">Add/Edit Timeline...</a>
+                                    <a class="dropdown-item" data-toggle="modal" data-target="#timelineImportExportModal" href="#">Import / Export Timelines</a>
+                                </div>
+                            </div>
+                            <div class="btn-toolbar float-right" role="toolbar">
+                                <button @click="addToTimeline" class="btn btn-primary btn-sm mr-2"><i class="mdi mdi-plus"></i></button>
+                                <div class="btn-group mr-2">
+                                    <button @click="playPreview" :disabled="previewIntervalId" class="btn btn-success btn-sm "><span class="mdi mdi-play"></span></button>
+                                    <button @click="stopPreview" class="btn btn-success btn-sm "><span class="mdi mdi-pause"></span></button>
+                                </div>
+                                <div class="playback-speed mr-2">
+                                    <input class="form-control form-control-sm" type="number" v-model="timeline.speed">
+                                </div>
+                                <label class="repeat mr-2"><input type="checkbox" v-model="timeline.repeat"> Repeat</label>
+                                <button @click="sendTimeline" class="btn btn-warning btn-sm"><span class="mdi mdi-play"></span></button>
+                            </div>
+
+                        </h5>
+                        <div class="tl-thumbnails">
+                            <matrix cclass="sml" v-for="i, index in timeline.frames" :selected="image === i" :value="i" @click.native="getImageFromTimeline(index)"></matrix>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -108,6 +148,33 @@
             </div>
         </div>
 
+        <!-- New Timeline Modal  -->
+        <div class="modal fade" id="newTimelineModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                <h5 class="modal-title">Timeline</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                </div>
+                <div class="modal-body">
+                    <h6>Edit your current Timeline:</h6>
+                    <label><b>Name</b></label>
+                    <input class="form-control" type="text" v-model="timeline.name">
+                    <button class="btn btn-danger mt-2" @click="deleteTimeline">Delete this Timeline</button>
+                    <h6 class="mt-4">Create a new Timeline:</h6>
+                    <label><b>Name</b></label>
+                    <input class="form-control" type="text" v-model="newTimeline.name">
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-success" type="button" @click="createTimeline()">Create</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+            </div>
+        </div>
+
         <!-- Import / Export Modal -->
         <div class="modal fade" id="importExportModal" tabindex="-1" role="dialog" aria-hidden="true">
             <div class="modal-dialog" role="document">
@@ -127,6 +194,31 @@
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-success" type="button" @click="importImages()">Import</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <!-- Timeline Import / Export Modal -->
+        <div class="modal fade" id="timelineImportExportModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                <h5 class="modal-title">Import / Export Timelines</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                </div>
+                <div class="modal-body">
+                    <span>Copy this to export your creations:</span>
+                    <textarea class="form-control" cols="30" rows="5" :value="stringTimelines"></textarea>
+                    <br>
+                    <span>Paste here to Import your backups:</span>
+                    <textarea class="form-control" cols="30" rows="5" v-model="importTimeline"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-success" type="button" @click="importTimelines">Import</button>
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 </div>
             </div>
