@@ -18,6 +18,9 @@
 .main {
     margin-top: 20px;
 }
+.timeline {
+    margin-top: 20px;
+}
 .cards-head{
     height: 50px;
 }
@@ -37,9 +40,6 @@
 .active{
     background: red;
 }
-.btn {
-    margin-top: 10px;
-}
 .side-btn {
     float: right;
     margin-left: 5px;
@@ -50,4 +50,22 @@
 }
 .name-input{
     margin-top: 10px;
+}
+.tl-thumbnails {
+    overflow-x: scroll;
+    overflow-y: hidden;
+    white-space: nowrap;
+    max-height: 130px;
+}
+.tl-thumbnails .card {
+    margin-right: 10px;
+    display: inline-block;
+}
+.playback-speed input{
+    width: 4rem;
+}
+.repeat{
+    font-size: .8em;
+    line-height: 30px;
+    margin-bottom:0; 
 }
