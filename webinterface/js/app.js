@@ -163,8 +163,10 @@ var app = new Vue({
         },
         createTimeline: function (){
             if(this.newTimeline.name.length > 0){
-                this.timelines.push(this.newTimeline)
-                this.timeline = this.newTimeline
+                this.timelines.push(JSON.parse(JSON.stringify(this.newTimeline)))
+                this.imageIndex = 0
+                this.timeline = this.timelines[this.timelines.length - 1]
+                this.newTimeline = {name: "", frames: [], speed: 100, repeat: true}
             }
         },
         deleteTimeline: function () {
