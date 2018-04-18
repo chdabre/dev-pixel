@@ -75,6 +75,8 @@ void handleRequest() {
     Serial.println("ARG: " + server.argName(i) + " = " + server.arg(i));
   }
 
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  
   if (server.args() == 0) {
     Serial.println("ERR: No Arguments provided.");
     server.send(400, "text/plain", "ERR: No Arguments provided"); // Error message
@@ -211,7 +213,7 @@ void loop() {
   
   if (displayMode == 0 || displayMode == 3) { // Message Display
     if (millis() % msgSpeed == 0) {
-      if (msgPos >= width * message.length() + matrix.width() - 1 - spacer) { // Message has made 1 pass across the display
+      if (msgPos > width * message.length() + matrix.width() - 1 - spacer) { // Message has made 1 pass across the display
         if (!msgRepeat) {
           drawImage(lastImage);
           displayMode = 1; // Static Image mode
@@ -267,3 +269,4 @@ void loop() {
   }
 
 }
+
